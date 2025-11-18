@@ -3,6 +3,9 @@
  * Authentication and Authorization Functions
  */
 
+// Include path configuration
+require_once __DIR__ . '/paths.php';
+
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -21,7 +24,7 @@ function isLoggedIn() {
  */
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: /ladcportal/yms/public/login.php');
+        header('Location: ' . url('login.php'));
         exit;
     }
 }

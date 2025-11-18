@@ -3,7 +3,10 @@
 # Enable rewrite engine
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /ladcportal/yms/public/
+    # IMPORTANT: Update RewriteBase to match your deployment path
+    # For ladcportal.com/yms or 192.168.0.20/yms use: /yms/public/
+    # For root deployment use: /public/
+    RewriteBase /yms/public/
 
     # Redirect to HTTPS (optional, uncomment if needed)
     # RewriteCond %{HTTPS} off

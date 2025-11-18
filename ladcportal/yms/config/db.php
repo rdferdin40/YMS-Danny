@@ -4,6 +4,9 @@
  * Returns a PDO instance for MySQL connection
  */
 
+// Include path configuration
+require_once __DIR__ . '/paths.php';
+
 // Database credentials - EDIT THESE FOR YOUR ENVIRONMENT
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'ladc_yms');
