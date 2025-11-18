@@ -90,24 +90,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$error) {
                 try {
-                    // Wrap in transaction for data integrity
-                    transaction(function() use ($trailerId, $toLocationType, $toYardArea, $toDockDoor, $spotterName, $notes, $trailer, $user) {
-                        // Determine move type
-                        $fromType = $trailer['current_location_type'];
-                        $moveType = '';
+                    // Determine move type
+                    $fromType = $trailer['current_location_type'];
+                    $moveType = '';
 
-                        if ($fromType === 'YARD' && $toLocationType === 'DOCK') {
-                            $moveType = 'YARD_TO_DOCK';
-                        } elseif ($fromType === 'DOCK' && $toLocationType === 'YARD') {
-                            $moveType = 'DOCK_TO_YARD';
-                        } elseif ($fromType === 'YARD' && $toLocationType === 'YARD') {
-                            $moveType = 'YARD_TO_YARD';
-                        } elseif ($toLocationType === 'DEPARTED') {
-                            $moveType = 'CHECK_OUT';
-                        } else {
-                            $moveType = 'MOVE';
-                        }
+                    if ($fromType === 'YARD' && $toLocationType === 'DOCK') {
+                        $moveType = 'YARD_TO_DOCK';
+                    } elseif ($fromType === 'DOCK' && $toLocationType === 'YARD') {
+                        $moveType = 'DOCK_TO_YARD';
+                    } elseif ($fromType === 'YARD' && $toLocationType === 'YARD') {
+                        $moveType = 'YARD_TO_YARD';
+                    } elseif ($toLocationType === 'DEPARTED') {
+                        $moveType = 'CHECK_OUT';
+                    } else {
+                        $moveType = 'MOVE';
+                    }
 
+                    // Start transaction
+                    beginTransaction();
+
+                    try {
                         // Create move record
                         $moveId = generateMoveId();
                         Move::create([
@@ -148,13 +150,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'to' => $toLocationType
                         ]);
 
-                        return $moveId;
-                    });
+                        // Commit transaction
+                        commit();
 
-                    redirect('trailer_detail.php?id=' . $trailerId, 'Move created successfully', 'success');
+                        redirect('trailer_detail.php?id=' . $trailerId, 'Move created successfully: ' . $moveId, 'success');
+                    } catch (Exception $e) {
+                        // Rollback on error
+                        rollback();
+                        throw $e;
+                    }
                 } catch (Exception $e) {
-                    logError('Failed to create move', $e);
-                    $error = 'Failed to create move. Please try again.';
+                    // Log error and show message
+                    error_log("Move creation failed: " . $e->getMessage());
+                    $error = 'Failed to create move: ' . $e->getMessage();
                 }
             }
         }

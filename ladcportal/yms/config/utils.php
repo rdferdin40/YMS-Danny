@@ -129,26 +129,31 @@ function checkDuplicateTrailer($trailerNumber) {
  * Log to audit trail
  * @param string $action
  * @param string $entityType
- * @param int $entityId
+ * @param int|null $entityId
  * @param array|null $beforeData
  * @param array|null $afterData
  */
 function logAudit($action, $entityType, $entityId, $beforeData = null, $afterData = null) {
-    $user = getCurrentUser();
-    $userId = $user ? $user['id'] : null;
+    try {
+        $user = getCurrentUser();
+        $userId = $user ? $user['id'] : null;
 
-    $sql = "INSERT INTO audit_log (user_id, action, entity_type, entity_id, before_data, after_data, ip_address, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+        $sql = "INSERT INTO audit_log (user_id, action, entity_type, entity_id, before_data, after_data, ip_address, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
 
-    query($sql, [
-        $userId,
-        $action,
-        $entityType,
-        $entityId,
-        $beforeData ? json_encode($beforeData) : null,
-        $afterData ? json_encode($afterData) : null,
-        getUserIP()
-    ]);
+        query($sql, [
+            $userId,
+            $action,
+            $entityType,
+            $entityId,
+            $beforeData ? json_encode($beforeData) : null,
+            $afterData ? json_encode($afterData) : null,
+            getUserIP()
+        ]);
+    } catch (Exception $e) {
+        // Log to error log but don't crash the application
+        error_log("Failed to write to audit log: " . $e->getMessage());
+    }
 }
 
 /**
