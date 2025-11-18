@@ -19,6 +19,9 @@ $error = '';
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token
+    requireCSRF();
+
     $formAction = $_POST['form_action'] ?? '';
 
     if ($formAction === 'create') {
@@ -142,6 +145,7 @@ require __DIR__ . '/../views/partials/navbar.php';
                                     </a>
                                     <?php if ($u['id'] != $user['id']): ?>
                                         <form method="POST" style="display: inline;" onsubmit="return confirm('Deactivate this user?');">
+                                            <?php echo csrfField(); ?>
                                             <input type="hidden" name="form_action" value="delete">
                                             <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -168,6 +172,7 @@ require __DIR__ . '/../views/partials/navbar.php';
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
+                                            <?php echo csrfField(); ?>
                 <input type="hidden" name="form_action" value="create">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -214,6 +219,7 @@ require __DIR__ . '/../views/partials/navbar.php';
                 <a href="admin_users.php" class="btn-close btn-close-white"></a>
             </div>
             <form method="POST">
+                                            <?php echo csrfField(); ?>
                 <input type="hidden" name="form_action" value="update">
                 <input type="hidden" name="user_id" value="<?php echo $editUser['id']; ?>">
                 <div class="modal-body">

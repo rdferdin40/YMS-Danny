@@ -256,6 +256,7 @@ require __DIR__ . '/../views/partials/navbar.php';
                             </a>
                             <?php if ($trailer['current_location_type'] !== 'DEPARTED'): ?>
                                 <form method="POST" action="checkout_trailer.php" onsubmit="return confirm('Check out this trailer?');">
+                                    <?php echo csrfField(); ?>
                                     <input type="hidden" name="trailer_id" value="<?php echo $trailer['id']; ?>">
                                     <button type="submit" class="btn btn-danger w-100">
                                         <i class="bi bi-box-arrow-right"></i> Check Out

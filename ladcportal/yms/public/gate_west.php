@@ -27,6 +27,9 @@ $loadReasons = getActiveLookupItems('load_reasons');
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token
+    requireCSRF();
+
     $formAction = $_POST['action'] ?? 'checkin';
 
     if ($formAction === 'checkin') {
@@ -168,6 +171,7 @@ require __DIR__ . '/../views/partials/navbar.php';
                 <li>Check-in time: <?php echo formatDateTime($duplicateWarning['time_in']); ?></li>
             </ul>
             <form method="POST">
+                <?php echo csrfField(); ?>
                 <input type="hidden" name="action" value="checkin">
                 <input type="hidden" name="confirm_duplicate" value="1">
                 <input type="hidden" name="trailer_number" value="<?php echo e($_POST['trailer_number']); ?>">
@@ -214,6 +218,7 @@ require __DIR__ . '/../views/partials/navbar.php';
                     </div>
                     <div class="card-body">
                         <form method="POST">
+                            <?php echo csrfField(); ?>
                             <input type="hidden" name="action" value="checkin">
 
                             <div class="row mb-3">
@@ -330,6 +335,7 @@ require __DIR__ . '/../views/partials/navbar.php';
                     </div>
                     <div class="card-body">
                         <form method="POST">
+                            <?php echo csrfField(); ?>
                             <input type="hidden" name="action" value="checkout">
 
                             <div class="mb-3">

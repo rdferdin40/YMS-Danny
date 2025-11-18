@@ -26,6 +26,9 @@ if (!empty($_GET['trailer_id'])) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token
+    requireCSRF();
+
     $trailerId = $_POST['trailer_id'] ?? 0;
     $toLocationType = $_POST['to_location_type'] ?? '';
     $toYardArea = $_POST['to_yard_area'] ?? null;
@@ -151,6 +154,7 @@ require __DIR__ . '/../views/partials/navbar.php';
                 </div>
                 <div class="card-body">
                     <form method="POST" id="moveForm">
+                        <?php echo csrfField(); ?>
                         <div class="mb-3">
                             <label class="form-label">Select Trailer <span class="text-danger">*</span></label>
                             <select name="trailer_id" id="trailerSelect" class="form-select" required>

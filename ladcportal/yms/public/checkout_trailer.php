@@ -15,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('index.php', 'Invalid request', 'error');
 }
 
+// Validate CSRF token
+requireCSRF();
+
 $trailerId = $_POST['trailer_id'] ?? 0;
 
 if (!$trailerId) {
