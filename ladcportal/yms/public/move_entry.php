@@ -29,18 +29,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate CSRF token
     requireCSRF();
 
-    $trailerId = $_POST['trailer_id'] ?? 0;
-    $toLocationType = $_POST['to_location_type'] ?? '';
-    $toYardArea = $_POST['to_yard_area'] ?? null;
-    $toDockDoor = $_POST['to_dock_door'] ?? null;
-    $spotterName = $_POST['spotter_name'] ?? null;
-    $notes = $_POST['notes'] ?? '';
+    // Sanitize and validate input
+    $trailerId = (int)($_POST['trailer_id'] ?? 0);
+    $toLocationType = trim($_POST['to_location_type'] ?? '');
 
+    // Convert empty strings to NULL for optional fields
+    $toYardArea = !empty($_POST['to_yard_area']) ? trim($_POST['to_yard_area']) : null;
+    $toDockDoor = !empty($_POST['to_dock_door']) ? (int)$_POST['to_dock_door'] : null;
+    $spotterName = !empty($_POST['spotter_name']) ? trim($_POST['spotter_name']) : null;
+    $notes = trim($_POST['notes'] ?? '');
+
+    // Validate trailer selection
     if (!$trailerId) {
         $error = 'Please select a trailer';
-    } elseif (!$toLocationType) {
+    }
+    // Validate destination type
+    elseif (!$toLocationType) {
         $error = 'Please select a destination';
-    } else {
+    }
+    // Validate ENUM value for location type
+    elseif (!validateEnum($toLocationType, ['YARD', 'DOCK', 'DEPARTED'])) {
+        $error = 'Invalid destination type';
+    }
+    // Validate yard area if YARD destination
+    elseif ($toLocationType === 'YARD' && !$toYardArea) {
+        $error = 'Yard area is required when moving to yard';
+    }
+    // Validate yard area ENUM
+    elseif ($toLocationType === 'YARD' && !validateEnum($toYardArea, ['EAST_YARD', 'WEST_YARD'])) {
+        $error = 'Invalid yard area';
+    }
+    // Validate dock door if DOCK destination
+    elseif ($toLocationType === 'DOCK' && !$toDockDoor) {
+        $error = 'Dock door is required when moving to dock';
+    }
+    // Validate dock door range
+    elseif ($toLocationType === 'DOCK' && !validateRange($toDockDoor, 1, 52)) {
+        $error = 'Dock door must be between 1 and 52';
+    }
+    // Validate spotter name length
+    elseif ($spotterName && !validateLength($spotterName, 1, 100)) {
+        $error = 'Spotter name is too long (max 100 characters)';
+    }
+    // Validate notes length
+    elseif (!validateLength($notes, 0, 255)) {
+        $error = 'Notes are too long (max 255 characters)';
+    }
+    else {
         $trailer = Trailer::findById($trailerId);
         if (!$trailer) {
             $error = 'Trailer not found';
@@ -55,65 +90,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$error) {
                 try {
-                    // Determine move type
-                    $fromType = $trailer['current_location_type'];
-                    $moveType = '';
+                    // Wrap in transaction for data integrity
+                    transaction(function() use ($trailerId, $toLocationType, $toYardArea, $toDockDoor, $spotterName, $notes, $trailer, $user) {
+                        // Determine move type
+                        $fromType = $trailer['current_location_type'];
+                        $moveType = '';
 
-                    if ($fromType === 'YARD' && $toLocationType === 'DOCK') {
-                        $moveType = 'YARD_TO_DOCK';
-                    } elseif ($fromType === 'DOCK' && $toLocationType === 'YARD') {
-                        $moveType = 'DOCK_TO_YARD';
-                    } elseif ($fromType === 'YARD' && $toLocationType === 'YARD') {
-                        $moveType = 'YARD_TO_YARD';
-                    } elseif ($toLocationType === 'DEPARTED') {
-                        $moveType = 'CHECK_OUT';
-                    } else {
-                        $moveType = 'MOVE';
-                    }
+                        if ($fromType === 'YARD' && $toLocationType === 'DOCK') {
+                            $moveType = 'YARD_TO_DOCK';
+                        } elseif ($fromType === 'DOCK' && $toLocationType === 'YARD') {
+                            $moveType = 'DOCK_TO_YARD';
+                        } elseif ($fromType === 'YARD' && $toLocationType === 'YARD') {
+                            $moveType = 'YARD_TO_YARD';
+                        } elseif ($toLocationType === 'DEPARTED') {
+                            $moveType = 'CHECK_OUT';
+                        } else {
+                            $moveType = 'MOVE';
+                        }
 
-                    // Create move record
-                    $moveId = generateMoveId();
-                    Move::create([
-                        'move_id' => $moveId,
-                        'trailer_id' => $trailerId,
-                        'from_location_type' => $trailer['current_location_type'],
-                        'from_yard_area' => $trailer['yard_area'],
-                        'from_dock_door' => $trailer['dock_door'],
-                        'to_location_type' => $toLocationType,
-                        'to_yard_area' => $toYardArea,
-                        'to_dock_door' => $toDockDoor,
-                        'move_type' => $moveType,
-                        'spotter_name' => $spotterName,
-                        'performed_by_user_id' => $user['id'],
-                        'notes' => $notes
-                    ]);
+                        // Create move record
+                        $moveId = generateMoveId();
+                        Move::create([
+                            'move_id' => $moveId,
+                            'trailer_id' => $trailerId,
+                            'from_location_type' => $trailer['current_location_type'],
+                            'from_yard_area' => $trailer['yard_area'],
+                            'from_dock_door' => $trailer['dock_door'],
+                            'to_location_type' => $toLocationType,
+                            'to_yard_area' => $toYardArea,
+                            'to_dock_door' => $toDockDoor,
+                            'move_type' => $moveType,
+                            'spotter_name' => $spotterName,
+                            'performed_by_user_id' => $user['id'],
+                            'notes' => $notes
+                        ]);
 
-                    // Update trailer location
-                    if ($toLocationType === 'DEPARTED') {
-                        Trailer::checkOut($trailerId);
-                    } elseif ($toLocationType === 'DOCK') {
-                        Trailer::assignToDock($trailerId, $toDockDoor);
-                    } elseif ($toLocationType === 'YARD') {
-                        Trailer::assignToYard($trailerId, $toYardArea);
-                    }
+                        // Update trailer location
+                        if ($toLocationType === 'DEPARTED') {
+                            Trailer::checkOut($trailerId);
+                        } elseif ($toLocationType === 'DOCK') {
+                            Trailer::assignToDock($trailerId, $toDockDoor);
+                        } elseif ($toLocationType === 'YARD') {
+                            Trailer::assignToYard($trailerId, $toYardArea);
+                        }
 
-                    // Update last move info
-                    Trailer::update($trailerId, [
-                        'last_move_type' => $moveType,
-                        'last_spotter_name' => $spotterName
-                    ]);
+                        // Update last move info
+                        Trailer::update($trailerId, [
+                            'last_move_type' => $moveType,
+                            'last_spotter_name' => $spotterName
+                        ]);
 
-                    // Log audit
-                    logAudit('MOVE_CREATED', 'MOVE', $moveId, null, [
-                        'trailer_number' => $trailer['trailer_number'],
-                        'move_type' => $moveType,
-                        'from' => $fromType,
-                        'to' => $toLocationType
-                    ]);
+                        // Log audit
+                        logAudit('MOVE_CREATED', 'MOVE', $moveId, null, [
+                            'trailer_number' => $trailer['trailer_number'],
+                            'move_type' => $moveType,
+                            'from' => $fromType,
+                            'to' => $toLocationType
+                        ]);
 
-                    redirect('trailer_detail.php?id=' . $trailerId, 'Move created successfully: ' . $moveId, 'success');
+                        return $moveId;
+                    });
+
+                    redirect('trailer_detail.php?id=' . $trailerId, 'Move created successfully', 'success');
                 } catch (Exception $e) {
-                    $error = 'Failed to create move: ' . $e->getMessage();
+                    logError('Failed to create move', $e);
+                    $error = 'Failed to create move. Please try again.';
                 }
             }
         }
