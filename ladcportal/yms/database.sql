@@ -178,7 +178,7 @@ CREATE TABLE audit_log (
     user_id INT NULL,
     action VARCHAR(100) NOT NULL COMMENT 'TRAILER_CREATED, MOVE_CREATED, TRAILER_UPDATED, etc.',
     entity_type VARCHAR(50) NOT NULL COMMENT 'TRAILER, MOVE, USER, etc.',
-    entity_id INT NOT NULL,
+    entity_id INT NULL COMMENT 'NULL for events without specific entity (e.g., failed logins)',
     before_data TEXT NULL COMMENT 'JSON of previous state',
     after_data TEXT NULL COMMENT 'JSON of new state',
     ip_address VARCHAR(45) NULL,
