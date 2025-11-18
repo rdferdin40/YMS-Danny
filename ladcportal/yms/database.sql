@@ -198,13 +198,13 @@ CREATE TABLE audit_log (
 
 -- Insert sample users (passwords are all 'password123')
 INSERT INTO users (username, password_hash, full_name, role, active) VALUES
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Administrator', 'ADMIN', 1),
-('guard1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'John Guard East', 'GUARD', 1),
-('guard2', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Jane Guard West', 'GUARD', 1),
-('xd_clerk1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Maria Rodriguez', 'XD_TRAFFIC_CLERK', 1),
-('fg_clerk1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Carlos Martinez', 'FG_TRAFFIC_CLERK', 1),
-('ship_clerk1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'David Lopez', 'SHIPPING_CLERK', 1),
-('supervisor1', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Sarah Johnson', 'SUPERVISOR', 1);
+('admin', '$2y$12$O3O7oEv.E2IKgE.H8PqV4.xFB9CEsz3RGesmy3d8FsuoYLaDcg/ZO', 'System Administrator', 'ADMIN', 1),
+('guard1', '$2y$12$O3O7oEv.E2IKgE.H8PqV4.xFB9CEsz3RGesmy3d8FsuoYLaDcg/ZO', 'John Guard East', 'GUARD', 1),
+('guard2', '$2y$12$O3O7oEv.E2IKgE.H8PqV4.xFB9CEsz3RGesmy3d8FsuoYLaDcg/ZO', 'Jane Guard West', 'GUARD', 1),
+('xd_clerk1', '$2y$12$O3O7oEv.E2IKgE.H8PqV4.xFB9CEsz3RGesmy3d8FsuoYLaDcg/ZO', 'Maria Rodriguez', 'XD_TRAFFIC_CLERK', 1),
+('fg_clerk1', '$2y$12$O3O7oEv.E2IKgE.H8PqV4.xFB9CEsz3RGesmy3d8FsuoYLaDcg/ZO', 'Carlos Martinez', 'FG_TRAFFIC_CLERK', 1),
+('ship_clerk1', '$2y$12$O3O7oEv.E2IKgE.H8PqV4.xFB9CEsz3RGesmy3d8FsuoYLaDcg/ZO', 'David Lopez', 'SHIPPING_CLERK', 1),
+('supervisor1', '$2y$12$O3O7oEv.E2IKgE.H8PqV4.xFB9CEsz3RGesmy3d8FsuoYLaDcg/ZO', 'Sarah Johnson', 'SUPERVISOR', 1);
 
 -- Insert sample spotters
 INSERT INTO spotters (name, active) VALUES
