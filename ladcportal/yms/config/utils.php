@@ -8,26 +8,50 @@ require_once __DIR__ . '/auth.php';
 
 /**
  * Generate next move ID in format MV-YYYY-MM-DD-00001
+ * Uses database locking to prevent race conditions
  * @return string
  */
 function generateMoveId() {
     $today = date('Y-m-d');
     $prefix = 'MV-' . $today . '-';
 
-    // Get the last move ID for today
-    $sql = "SELECT move_id FROM moves WHERE move_id LIKE ? ORDER BY move_id DESC LIMIT 1";
-    $lastMove = fetchOne($sql, [$prefix . '%']);
+    // Use FOR UPDATE to lock the row and prevent race conditions
+    $sql = "SELECT move_id FROM moves WHERE move_id LIKE ? ORDER BY move_id DESC LIMIT 1 FOR UPDATE";
 
-    if ($lastMove) {
-        // Extract the counter part and increment
-        $lastCounter = (int)substr($lastMove['move_id'], -5);
-        $newCounter = $lastCounter + 1;
-    } else {
-        // First move of the day
-        $newCounter = 1;
+    // Execute within a transaction if not already in one
+    $wasInTransaction = inTransaction();
+
+    if (!$wasInTransaction) {
+        beginTransaction();
     }
 
-    return $prefix . str_pad($newCounter, 5, '0', STR_PAD_LEFT);
+    try {
+        $lastMove = fetchOne($sql, [$prefix . '%']);
+
+        if ($lastMove) {
+            // Extract the counter part and increment
+            $lastCounter = (int)substr($lastMove['move_id'], -5);
+            $newCounter = $lastCounter + 1;
+        } else {
+            // First move of the day
+            $newCounter = 1;
+        }
+
+        $moveId = $prefix . str_pad($newCounter, 5, '0', STR_PAD_LEFT);
+
+        // Commit if we started the transaction
+        if (!$wasInTransaction) {
+            commit();
+        }
+
+        return $moveId;
+
+    } catch (Exception $e) {
+        if (!$wasInTransaction) {
+            rollback();
+        }
+        throw $e;
+    }
 }
 
 /**

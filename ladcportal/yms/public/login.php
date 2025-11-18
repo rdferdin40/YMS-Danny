@@ -15,28 +15,45 @@ if (isLoggedIn()) {
 }
 
 $error = '';
+$rateLimitError = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if (empty($username) || empty($password)) {
+    // Check rate limit (5 attempts per 5 minutes per IP)
+    $rateLimitKey = 'login_' . getUserIP();
+    if (!checkRateLimit($rateLimitKey, 5, 300)) {
+        $resetTime = getRateLimitResetTime($rateLimitKey);
+        $minutes = ceil($resetTime / 60);
+        $error = "Too many login attempts. Please try again in $minutes minute(s).";
+    } elseif (empty($username) || empty($password)) {
         $error = 'Please enter both username and password';
     } else {
         $user = User::authenticate($username, $password);
 
         if ($user) {
-            // Login successful
+            // Login successful - reset rate limit
+            resetRateLimit($rateLimitKey);
+
+            // Login user (regenerates session ID)
             loginUser($user);
 
             // Log audit
             logAudit('USER_LOGIN', 'USER', $user['id'], null, ['username' => $username]);
 
-            // Redirect to dashboard or original requested page
+            // Validate and sanitize redirect parameter (prevent open redirect)
             $redirectTo = $_GET['redirect'] ?? 'index.php';
-            header('Location: ' . $redirectTo);
+            // Only allow internal redirects (no external URLs)
+            if (preg_match('/^[a-zA-Z0-9_\-]+\.php(\?.*)?$/', $redirectTo)) {
+                header('Location: ' . $redirectTo);
+            } else {
+                header('Location: index.php');
+            }
             exit;
         } else {
+            // Log failed login attempt
+            logAudit('USER_LOGIN_FAILED', 'USER', null, null, ['username' => $username, 'ip' => getUserIP()]);
             $error = 'Invalid username or password';
         }
     }

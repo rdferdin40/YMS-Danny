@@ -117,8 +117,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get active trailers for dropdown
-$activeTrailers = Trailer::getAll(['location_type' => 'YARD']) + Trailer::getAll(['location_type' => 'DOCK']);
+// Get active trailers for dropdown (yard and dock)
+$activeTrailers = array_merge(
+    Trailer::getAll(['location_type' => 'YARD']),
+    Trailer::getAll(['location_type' => 'DOCK'])
+);
 
 require __DIR__ . '/../views/partials/header.php';
 require __DIR__ . '/../views/partials/navbar.php';

@@ -30,7 +30,9 @@ function getDbConnection() {
             ];
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            die("Database connection failed: " . $e->getMessage());
+            // Log error securely without exposing details to users
+            error_log("Database connection failed: " . $e->getMessage());
+            die("Database connection failed. Please contact your system administrator.");
         }
     }
 
@@ -78,4 +80,59 @@ function fetchAll($sql, $params = []) {
  */
 function lastInsertId() {
     return getDbConnection()->lastInsertId();
+}
+
+/**
+ * Begin database transaction
+ * @return bool
+ */
+function beginTransaction() {
+    return getDbConnection()->beginTransaction();
+}
+
+/**
+ * Commit database transaction
+ * @return bool
+ */
+function commit() {
+    return getDbConnection()->commit();
+}
+
+/**
+ * Rollback database transaction
+ * @return bool
+ */
+function rollback() {
+    return getDbConnection()->rollBack();
+}
+
+/**
+ * Check if currently in a transaction
+ * @return bool
+ */
+function inTransaction() {
+    return getDbConnection()->inTransaction();
+}
+
+/**
+ * Execute a callback within a database transaction
+ * Automatically commits on success, rolls back on exception
+ * @param callable $callback
+ * @return mixed Returns the callback result
+ * @throws Exception
+ */
+function transaction($callback) {
+    $pdo = getDbConnection();
+
+    try {
+        $pdo->beginTransaction();
+        $result = $callback();
+        $pdo->commit();
+        return $result;
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
 }

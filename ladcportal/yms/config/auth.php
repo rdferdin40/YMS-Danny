@@ -6,10 +6,11 @@
 // Include path configuration
 require_once __DIR__ . '/paths.php';
 
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Include security functions
+require_once __DIR__ . '/security.php';
+
+// Configure secure session
+configureSecureSession();
 
 /**
  * Check if user is logged in
@@ -136,11 +137,15 @@ function canAccessAdmin() {
  * @param array $user User data from database
  */
 function loginUser($user) {
+    // Regenerate session ID to prevent session fixation attacks
+    session_regenerate_id(true);
+
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['full_name'] = $user['full_name'];
     $_SESSION['role'] = $user['role'];
     $_SESSION['login_time'] = time();
+    $_SESSION['last_activity'] = time();
 }
 
 /**
@@ -153,16 +158,12 @@ function logoutUser() {
 
 /**
  * Get user's IP address
+ * Note: Only uses REMOTE_ADDR to prevent IP spoofing via HTTP headers
  * @return string
  */
 function getUserIP() {
-    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-        return $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        return $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else {
-        return $_SERVER['REMOTE_ADDR'];
-    }
+    // Only use REMOTE_ADDR - HTTP headers can be spoofed
+    return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 }
 
 /**
