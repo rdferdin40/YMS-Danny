@@ -345,7 +345,8 @@ class Trailer {
         }
 
         $sql = "UPDATE trailers SET priority = ? WHERE id = ?";
-        return query($sql, [$priority, $id]);
+        query($sql, [$priority, $id]);
+        return true;
     }
 
     /**
@@ -356,7 +357,8 @@ class Trailer {
      */
     public static function updateWaitingNotes($id, $notes) {
         $sql = "UPDATE trailers SET waiting_notes = ? WHERE id = ?";
-        return query($sql, [$notes, $id]);
+        query($sql, [$notes, $id]);
+        return true;
     }
 
     /**
