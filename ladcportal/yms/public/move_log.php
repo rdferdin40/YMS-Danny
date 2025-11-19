@@ -32,7 +32,7 @@ $sql = "SELECT
             u.full_name as created_by_name
         FROM moves m
         LEFT JOIN trailers t ON m.trailer_id = t.id
-        LEFT JOIN users u ON m.created_by_user_id = u.id
+        LEFT JOIN users u ON m.performed_by_user_id = u.id
         ORDER BY m.created_at DESC
         LIMIT ? OFFSET ?";
 
