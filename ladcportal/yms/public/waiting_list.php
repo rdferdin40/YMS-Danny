@@ -212,12 +212,14 @@ require __DIR__ . '/../views/partials/navbar.php';
                                     <td><?php echo e($trailer['carrier'] ?: '-'); ?></td>
                                     <td>
                                         <?php
-                                        $statusClass = match($trailer['load_status']) {
-                                            'LOADED' => 'warning',
-                                            'EMPTY' => 'info',
-                                            'LIVE_LOAD' => 'danger',
-                                            default => 'secondary'
-                                        };
+                                        $statusClass = 'secondary';
+                                        if ($trailer['load_status'] === 'LOADED') {
+                                            $statusClass = 'warning';
+                                        } elseif ($trailer['load_status'] === 'EMPTY') {
+                                            $statusClass = 'info';
+                                        } elseif ($trailer['load_status'] === 'LIVE_LOAD') {
+                                            $statusClass = 'danger';
+                                        }
                                         ?>
                                         <span class="badge bg-<?php echo $statusClass; ?>">
                                             <?php echo e($trailer['load_status']); ?>
