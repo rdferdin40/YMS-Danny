@@ -118,7 +118,7 @@ require __DIR__ . '/../views/partials/navbar.php';
         <div class="col-md-2">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 class="text-danger"><?php echo $stats['high_priority'] ?? 0; ?></h3>
+                    <h3 class="text-danger"><?php echo $stats['high_priority_count'] ?? 0; ?></h3>
                     <small class="text-muted">High Priority</small>
                 </div>
             </div>
@@ -126,7 +126,7 @@ require __DIR__ . '/../views/partials/navbar.php';
         <div class="col-md-2">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 class="text-primary"><?php echo $stats['normal_priority'] ?? 0; ?></h3>
+                    <h3 class="text-primary"><?php echo $stats['normal_priority_count'] ?? 0; ?></h3>
                     <small class="text-muted">Normal Priority</small>
                 </div>
             </div>
@@ -134,7 +134,7 @@ require __DIR__ . '/../views/partials/navbar.php';
         <div class="col-md-2">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 class="text-secondary"><?php echo $stats['low_priority'] ?? 0; ?></h3>
+                    <h3 class="text-secondary"><?php echo $stats['low_priority_count'] ?? 0; ?></h3>
                     <small class="text-muted">Low Priority</small>
                 </div>
             </div>

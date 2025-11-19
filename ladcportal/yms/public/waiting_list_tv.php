@@ -237,7 +237,7 @@ function getLoadStatusClass($status) {
                 <span>Total Waiting</span>
             </div>
             <div class="col stat-item">
-                <span class="stat-number text-danger"><?php echo $stats['high_priority'] ?? 0; ?></span>
+                <span class="stat-number text-danger"><?php echo $stats['high_priority_count'] ?? 0; ?></span>
                 <span>High Priority</span>
             </div>
             <div class="col stat-item">

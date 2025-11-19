@@ -367,9 +367,9 @@ class Trailer {
     public static function getWaitingListStats($yardArea) {
         $sql = "SELECT
                     COUNT(*) as total_waiting,
-                    SUM(CASE WHEN priority = 'HIGH' THEN 1 ELSE 0 END) as high_priority,
-                    SUM(CASE WHEN priority = 'NORMAL' THEN 1 ELSE 0 END) as normal_priority,
-                    SUM(CASE WHEN priority = 'LOW' THEN 1 ELSE 0 END) as low_priority,
+                    SUM(CASE WHEN priority = 'HIGH' THEN 1 ELSE 0 END) as high_priority_count,
+                    SUM(CASE WHEN priority = 'NORMAL' THEN 1 ELSE 0 END) as normal_priority_count,
+                    SUM(CASE WHEN priority = 'LOW' THEN 1 ELSE 0 END) as low_priority_count,
                     SUM(CASE WHEN load_status = 'LOADED' THEN 1 ELSE 0 END) as loaded_count,
                     SUM(CASE WHEN load_status = 'EMPTY' THEN 1 ELSE 0 END) as empty_count,
                     AVG(TIMESTAMPDIFF(MINUTE, time_in, NOW())) as avg_wait_minutes,
