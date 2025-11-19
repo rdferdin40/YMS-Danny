@@ -44,6 +44,29 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                         </ul>
                     </li>
 
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle <?php echo $currentPage === 'waiting_list' || $currentPage === 'waiting_list_tv' ? 'active' : ''; ?>" href="#" id="waitingListDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-clipboard-check"></i> Waiting List
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><h6 class="dropdown-header">Clerk Management</h6></li>
+                            <li><a class="dropdown-item" href="<?php echo url('waiting_list.php?yard=WEST'); ?>">
+                                <i class="bi bi-arrow-left-circle text-primary"></i> West Side
+                            </a></li>
+                            <li><a class="dropdown-item" href="<?php echo url('waiting_list.php?yard=EAST'); ?>">
+                                <i class="bi bi-arrow-right-circle text-success"></i> East Side
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">TV Display</h6></li>
+                            <li><a class="dropdown-item" href="<?php echo url('waiting_list_tv.php?yard=WEST'); ?>" target="_blank">
+                                <i class="bi bi-tv"></i> West TV Display
+                            </a></li>
+                            <li><a class="dropdown-item" href="<?php echo url('waiting_list_tv.php?yard=EAST'); ?>" target="_blank">
+                                <i class="bi bi-tv"></i> East TV Display
+                            </a></li>
+                        </ul>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link <?php echo $currentPage === 'trailers' ? 'active' : ''; ?>" href="<?php echo url('trailers.php'); ?>">
                             <i class="bi bi-list-ul"></i> Trailers

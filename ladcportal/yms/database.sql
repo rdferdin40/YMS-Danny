@@ -70,6 +70,10 @@ CREATE TABLE trailers (
     load_id_or_contents VARCHAR(255) NULL,
     weight DECIMAL(10,2) NULL,
 
+    -- Waiting List Management
+    priority ENUM('LOW', 'NORMAL', 'HIGH') NOT NULL DEFAULT 'NORMAL' COMMENT 'Priority for dock assignment',
+    waiting_notes VARCHAR(255) NULL COMMENT 'Short notes for waiting list clerks',
+
     -- Gate (East/West)
     gate ENUM('East', 'West') NULL,
 
@@ -84,7 +88,8 @@ CREATE TABLE trailers (
     INDEX idx_date_in (date_in),
     INDEX idx_time_in (time_in),
     INDEX idx_time_out (time_out),
-    INDEX idx_gate (gate)
+    INDEX idx_gate (gate),
+    INDEX idx_waiting_list (yard_area, priority, time_in) COMMENT 'Optimize waiting list queries'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================

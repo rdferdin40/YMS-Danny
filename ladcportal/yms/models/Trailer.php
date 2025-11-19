@@ -304,4 +304,81 @@ class Trailer {
 
         return fetchAll($sql, [$days]);
     }
+
+    /**
+     * Get waiting list for a specific yard
+     * Ordered by: Priority (HIGH → NORMAL → LOW), then oldest first
+     * @param string $yardArea 'EAST_YARD' or 'WEST_YARD'
+     * @return array
+     */
+    public static function getWaitingList($yardArea) {
+        $sql = "SELECT
+                    id,
+                    trailer_number,
+                    carrier,
+                    load_status,
+                    time_in,
+                    priority,
+                    waiting_notes,
+                    TIMESTAMPDIFF(MINUTE, time_in, NOW()) as wait_minutes,
+                    TIMESTAMPDIFF(HOUR, time_in, NOW()) as wait_hours
+                FROM trailers
+                WHERE yard_area = ?
+                AND current_location_type = 'YARD'
+                AND dock_door IS NULL
+                ORDER BY
+                    FIELD(priority, 'HIGH', 'NORMAL', 'LOW'),
+                    time_in ASC";
+
+        return fetchAll($sql, [$yardArea]);
+    }
+
+    /**
+     * Update trailer priority
+     * @param int $id
+     * @param string $priority 'LOW', 'NORMAL', or 'HIGH'
+     * @return bool
+     */
+    public static function updatePriority($id, $priority) {
+        if (!in_array($priority, ['LOW', 'NORMAL', 'HIGH'])) {
+            return false;
+        }
+
+        $sql = "UPDATE trailers SET priority = ? WHERE id = ?";
+        return query($sql, [$priority, $id]);
+    }
+
+    /**
+     * Update waiting notes
+     * @param int $id
+     * @param string $notes
+     * @return bool
+     */
+    public static function updateWaitingNotes($id, $notes) {
+        $sql = "UPDATE trailers SET waiting_notes = ? WHERE id = ?";
+        return query($sql, [$notes, $id]);
+    }
+
+    /**
+     * Get waiting list statistics
+     * @param string $yardArea
+     * @return array
+     */
+    public static function getWaitingListStats($yardArea) {
+        $sql = "SELECT
+                    COUNT(*) as total_waiting,
+                    SUM(CASE WHEN priority = 'HIGH' THEN 1 ELSE 0 END) as high_priority,
+                    SUM(CASE WHEN priority = 'NORMAL' THEN 1 ELSE 0 END) as normal_priority,
+                    SUM(CASE WHEN priority = 'LOW' THEN 1 ELSE 0 END) as low_priority,
+                    SUM(CASE WHEN load_status = 'LOADED' THEN 1 ELSE 0 END) as loaded_count,
+                    SUM(CASE WHEN load_status = 'EMPTY' THEN 1 ELSE 0 END) as empty_count,
+                    AVG(TIMESTAMPDIFF(MINUTE, time_in, NOW())) as avg_wait_minutes,
+                    MAX(TIMESTAMPDIFF(MINUTE, time_in, NOW())) as max_wait_minutes
+                FROM trailers
+                WHERE yard_area = ?
+                AND current_location_type = 'YARD'
+                AND dock_door IS NULL";
+
+        return fetchOne($sql, [$yardArea]) ?? [];
+    }
 }
