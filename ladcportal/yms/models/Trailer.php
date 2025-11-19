@@ -250,7 +250,7 @@ class Trailer {
      * @return array
      */
     public static function getDockDoorStatuses() {
-        $sql = "SELECT dock_door, trailer_number, load_status, time_in, trailer_type
+        $sql = "SELECT id, dock_door, trailer_number, load_status, time_in, trailer_type
                 FROM trailers
                 WHERE dock_door IS NOT NULL
                 AND current_location_type = 'DOCK'";
